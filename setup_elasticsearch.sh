@@ -1,15 +1,9 @@
 #!/bin/bash
-
 # Script to set up Elasticsearch 8.17.4 using Podman with the hardened Wolfi image, based on the official Docker documentation.
-
 # Note: Using Wolfi images might have specific kernel or dependency requirements.
-
 # https://www.elastic.co/guide/en/elasticsearch/reference/8.17/docker.html
-
 # GNU GENERAL PUBLIC LICENSE Version 3
-
 # Harisfazillah Jamel and Google Gemini
-
 # 31 Mac 2025
 
 set -e
@@ -131,9 +125,9 @@ ELASTIC_PASSWORD=$(echo "$PASSWORD_OUTPUT" | grep -oP 'New value: \K.*')
 if [ -n "${ELASTIC_PASSWORD}" ]; then
   echo "Elastic password set to: ${ELASTIC_PASSWORD}"
   echo "Elastic password set to: ${ELASTIC_PASSWORD}" >> "${TEMP_CREDENTIALS_FILE}"
-  export ELASTIC_PASSWORD="${ELASTIC_PASSWORD}" # Optional: Set as environment variable
+  # export ELASTIC_PASSWORD="${ELASTIC_PASSWORD}" # Removed export
   echo "Recommendation: You can store this password as an environment variable in your shell using:"
-  echo "export ELASTIC_PASSWORD=\"${ELASTIC_PASSWORD}\""
+  echo "export ELASTIC_PASSWORD=${ELASTIC_PASSWORD}"
 else
   echo "Error resetting elastic password. Check ${TEMP_CREDENTIALS_FILE}"
 fi
@@ -171,15 +165,18 @@ if [ -f "${CERT_DIR}/http_ca.crt" ]; then
   CREDENTIALS="elastic:${EXTRACTED_PASSWORD}"
   BASE64_CREDENTIALS=$(echo -n "$CREDENTIALS" | base64)
   AUTHORIZATION_HEADER="Authorization: Basic ${BASE64_CREDENTIALS}"
+  # export CREDENTIALS="elastic:${EXTRACTED_PASSWORD}" # Removed export
+  # export BASE64_CREDENTIALS=$(echo -n "$CREDENTIALS" | base64) # Removed export
+  # export AUTHORIZATION_HEADER="Authorization: Basic ${BASE64_CREDENTIALS}" # Removed export
 
   info "Making REST API call using -H"
-  /usr/bin/curl --cacert $CERT_DIR/http_ca.crt -H "$AUTHORIZATION_HEADER" https://localhost:9200
+  /usr/bin/curl --cacert "$CERT_DIR/http_ca.crt" -H "$AUTHORIZATION_HEADER" https://localhost:9200
 
   info "Waiting for 5 seconds..."
   sleep 5
 
   info "Making REST API call using -u"
-  /usr/bin/curl --cacert $CERT_DIR/http_ca.crt -u "$CREDENTIALS" https://localhost:9200
+  /usr/bin/curl --cacert "$CERT_DIR/http_ca.crt" -u "$CREDENTIALS" https://localhost:9200
 else
   echo "Error: http_ca.crt not found. Skipping API calls."
 fi
@@ -187,5 +184,6 @@ fi
 echo ""
 info "Elasticsearch setup complete! You can access it at https://localhost:9200."
 info "Remember to check the temporary file '${TEMP_CREDENTIALS_FILE}' for the Elasticsearch password and the Kibana enrollment token."
-info "Recommendation: For easier interaction with Elasticsearch, consider exporting the password as an environment variable:"
-info "export ELASTIC_PASSWORD=\"$(grep 'Elastic password set to:' '${TEMP_CREDENTIALS_FILE}' | sed 's/.*Elastic password set to: //')\""
+  echo "Recommendation: You can store this password as an environment variable in your shell using:"
+  echo "export ELASTIC_PASSWORD=$ELASTIC_PASSWORD"
+  echo "Kibana enrollment token: ${KIBANA_ENROLLMENT_TOKEN}"
