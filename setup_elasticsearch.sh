@@ -2,6 +2,10 @@
 
 # Script to set up Elasticsearch 8.17.4 using Podman with the hardened Wolfi image, based on the official Docker documentation.
 # Note: Using Wolfi images might have specific kernel or dependency requirements.
+# https://www.elastic.co/guide/en/elasticsearch/reference/8.17/docker.html
+# GNU GENERAL PUBLIC LICENSE Version 3
+# Harisfazillah Jamel and Google Gemini
+# 31 Mac 2025
 
 set -e
 
