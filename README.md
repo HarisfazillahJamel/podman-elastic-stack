@@ -1,53 +1,50 @@
-# podman-elastic-stack
-podman-elastic-stack from elastic docker documentation
+# Setup Elasticsearch 8.17.4 with Podman (Wolfi Hardened Image)
 
-# Elasticsearch 8.17.4 Setup with Podman on Wolfi Image
-
-This bash script automates the setup of Elasticsearch version 8.17.4 using Podman and the hardened Wolfi Linux image. It follows the official Elastic documentation for Docker but adapts it for Podman.
-
-## Description
-
-The script performs the following actions:
-
-1.  Installs Podman and Podman Compose if they are not already present.
-2.  Pulls the official Elasticsearch Wolfi hardened Docker image for version 8.17.4.
-3.  Optionally installs and verifies the image signature using Cosign.
-4.  Starts an Elasticsearch container named `es01` using `podman-compose`.
-5.  Retrieves and stores the initial Elasticsearch password and Kibana enrollment token.
-6.  Copies the SSL certificate from the Elasticsearch container to a local directory.
-7.  Makes a REST API call to the Elasticsearch instance to verify the setup.
+This script automates the setup of Elasticsearch version 8.17.4 using Podman and the hardened Wolfi image, following the official Elastic Docker documentation.
 
 ## Prerequisites
 
-* A Linux system with `sudo` privileges.
-* `dnf` package manager (common on Red Hat-based distributions like the one shown in the initial prompt).
+* **Podman:** Ensure Podman is installed on your system. You can find installation instructions for various distributions on the [Podman Installation Guide](https://podman.io/getting-started/installation).
+* **Podman Compose:** Podman Compose is required to manage the Elasticsearch container. Installation instructions can also be found on the Podman website or through your distribution's package manager (often in an `epel-release` repository for RPM-based systems).
 
 ## Usage
 
-1.  Save the bash script to a file (e.g., `setup_elasticsearch.sh`).
-2.  Make the script executable: `chmod +x setup_elasticsearch.sh`.
-3.  Run the script: `./setup_elasticsearch.sh`.
+1.  **Save the Script:** Save the provided bash script as `setup-elasticsearch.sh` or any other name you prefer.
+2.  **Make it Executable:** Open your terminal and navigate to the directory where you saved the script. Make the script executable using the command:
+    ```bash
+    chmod +x setup-elasticsearch.sh
+    ```
+3.  **Run the Script:** Execute the script using:
+    ```bash
+    ./setup-elasticsearch.sh
+    ```
+    You might need `sudo` if the script requires root privileges for installing Podman or Podman Compose, depending on your system configuration.
 
-The script will create a directory named `elk-wolfi` in the same directory where the script is located to store configuration and temporary files.
+## What the Script Does
 
-## Bugs Encountered and Solutions
+1.  **Installs Podman and Podman Compose:** If not already installed, the script attempts to install Podman and Podman Compose using `dnf` (for Fedora, CentOS, etc.).
+2.  **Pulls Elasticsearch Image:** Downloads the official Elasticsearch 8.17.4 hardened Wolfi image from Docker Hub.
+3.  **Optional Cosign Verification:** If `cosign` is installed, the script downloads the Elastic public key and verifies the signature of the Elasticsearch image.
+4.  **Starts Elasticsearch Container:** Creates and starts an Elasticsearch container named `es01` using `podman-compose`. The container exposes port 9200.
+5.  **Retrieves Elasticsearch Password:** After Elasticsearch starts, the script resets the password for the `elastic` user and retrieves the new password. This password is saved in a temporary file (`elk-wolfi/temp_credentials.txt`) and also printed to the console.
+6.  **Retrieves Kibana Enrollment Token:** The script generates a Kibana enrollment token, which is also saved in the temporary credentials file and printed to the console.
+7.  **Copies SSL Certificate:** The SSL certificate used by Elasticsearch for HTTPS is copied from the container to the `elk-wolfi/certs` directory.
+8.  **Makes REST API Call:** The script uses `curl` to make a basic API call to Elasticsearch to verify that it's running.
+9.  **Cleans Up Credentials:** The script removes any leading or trailing whitespace or newline characters from both the Elasticsearch password and the Kibana enrollment token.
 
-During the development of this script, we encountered and resolved the following issues:
+## Important Information
 
-* **`curl: option --user-file: is unknown`**: This error occurred when trying to use the `--user-file` option with `curl`. It was resolved by explicitly using the full path to the `curl` executable (`/usr/bin/curl`) to ensure the correct version was being used.
+* **Elasticsearch Password:** The newly generated password for the `elastic` user is stored in the `elk-wolfi/temp_credentials.txt` file in the same directory where you run the script. It is highly recommended to secure this password.
+* **Kibana Enrollment Token:** The Kibana enrollment token is also located in the `elk-wolfi/temp_credentials.txt` file. You will need this token if you decide to set up Kibana to connect to this Elasticsearch instance.
+* **Access Elasticsearch:** Once the script completes successfully, you can access Elasticsearch at `https://localhost:9200`. You will be prompted for credentials. Use the username `elastic` and the password found in the `temp_credentials.txt` file.
+* **Wolfi Image:** This script uses the hardened Wolfi image for Elasticsearch, which might have specific system requirements. Ensure your system meets these requirements if you encounter any issues.
 
-* **`401 Unauthorized` errors with `-H` and Base64 authentication**: Initially, the script attempted to authenticate with Elasticsearch using the `-H` option and a manually constructed `Authorization: Basic` header with Base64 encoded credentials. This resulted in `401 Unauthorized` errors. Multiple attempts were made with different quoting and variable expansion techniques, but the issue persisted.
+## Next Steps (Optional)
 
-* **`.netrc` authentication not working**: We tried using a `.netrc` file to provide credentials to `curl` using the `--netrc-file` option. This approach also did not resolve the authentication issue.
+* **Set up Kibana:** You can use the Kibana enrollment token to set up a Kibana instance to visualize and manage your Elasticsearch data. Refer to the official Elastic documentation for instructions on setting up Kibana with Docker or Podman.
+* **Configure Elasticsearch:** For production environments, you will likely want to configure Elasticsearch further, such as setting up a cluster, configuring data paths, and managing resources.
 
-* **`curl: (6) Could not resolve host: Basic`**: After removing double quotes and curly braces from the `curl -H` command, `curl` started to misinterpret the `Authorization` header, leading to this "Could not resolve host" error. This was fixed by ensuring the entire header value passed to `-H` was enclosed in double quotes.
+Enjoy using your new Elasticsearch setup!
 
-* **Final Solution**: The authentication was finally successful using the `-u` option of `curl`, which allows providing the username and password directly in the format `username:password`.
+20250331
 
-## Stopping and Pruning Podman Elasticsearch
-
-To stop and clean up the Elasticsearch container and network created by the script, navigate to the `elk-wolfi` directory and run the following commands:
-
-```bash
-cd elk-wolfi
-podman-compose down
