@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch-wolfi:8.17.4
+    container_name: es01
+    networks:
+      - elastic
+    ports:
+      - "9200:9200"
+    environment:
+      - discovery.type=single-node
+    mem_limit: 1GB
+networks:
+  elastic:
+    driver: bridge

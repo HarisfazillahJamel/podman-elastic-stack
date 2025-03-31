@@ -2,10 +2,6 @@
 
 # Script to set up Elasticsearch 8.17.4 using Podman with the hardened Wolfi image, based on the official Docker documentation.
 # Note: Using Wolfi images might have specific kernel or dependency requirements.
-# https://www.elastic.co/guide/en/elasticsearch/reference/8.17/docker.html
-# GNU GENERAL PUBLIC LICENSE Version 3
-# Harisfazillah Jamel and Google Gemini
-# 31 Mac 2025
 
 set -e
 
@@ -15,7 +11,7 @@ SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 # --- Variables ---
 ELK_VERSION="8.17.4"
 ELK_BASE_DIR="${SCRIPT_DIR}" # Base directory is where the script is located
-ELK_DIR="${ELK_BASE_DIR}/elk-wolfi-${ELK_VERSION}"
+ELK_DIR="${ELK_BASE_DIR}/elk-wolfi"
 CERT_DIR="${ELK_DIR}/certs"
 # Using hardened Wolfi image
 ELASTICSEARCH_IMAGE="docker.elastic.co/elasticsearch/elasticsearch-wolfi:${ELK_VERSION}"
@@ -156,27 +152,25 @@ info "SSL certificate copied to ${CERT_DIR}/http_ca.crt"
 # --- Step 8: Make REST API Call ---
 info "Step 8: Make REST API Call"
 
-echo "DEBUG: Retrieving password from '${TEMP_CREDENTIALS_FILE}'..."
 EXTRACTED_PASSWORD=$(grep "Elastic password set to:" "${TEMP_CREDENTIALS_FILE}" | sed 's/.*Elastic password set to: //')
 
-# Debug: Echo the extracted password
-echo "DEBUG: Extracted password: '${EXTRACTED_PASSWORD}'"
-
-echo "DEBUG: Waiting for an additional 20 seconds before API call..."
 sleep 20
-
-echo "DEBUG: CERT_DIR='${CERT_DIR}'"
 
 if [ -f "${CERT_DIR}/http_ca.crt" ]; then
   CREDENTIALS="elastic:${EXTRACTED_PASSWORD}"
-  echo "DEBUG: CREDENTIALS='${CREDENTIALS}'"
   BASE64_CREDENTIALS=$(echo -n "$CREDENTIALS" | base64)
   AUTHORIZATION_HEADER="Authorization: Basic ${BASE64_CREDENTIALS}"
-  echo "DEBUG: AUTHORIZATION_HEADER='${AUTHORIZATION_HEADER}'"
-  export AUTHORIZATION_HEADER
-  curl --cacert "${CERT_DIR}/http_ca.crt" -H "$AUTHORIZATION_HEADER" https://localhost:9200
+
+  info "Making REST API call using -H"
+  /usr/bin/curl --cacert $CERT_DIR/http_ca.crt -H "$AUTHORIZATION_HEADER" https://localhost:9200
+
+  info "Waiting for 5 seconds..."
+  sleep 5
+
+  info "Making REST API call using -u"
+  /usr/bin/curl --cacert $CERT_DIR/http_ca.crt -u "$CREDENTIALS" https://localhost:9200
 else
-  echo "Error: http_ca.crt not found. Skipping API call."
+  echo "Error: http_ca.crt not found. Skipping API calls."
 fi
 
 echo ""
