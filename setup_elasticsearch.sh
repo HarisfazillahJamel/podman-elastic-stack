@@ -99,6 +99,7 @@ echo "Please wait for Elasticsearch to start..."
 
 for i in $(seq 60 -1 1); do
   echo "Waiting for Elasticsearch to start... $i seconds remaining..."
+  podman ps -a
   sleep 1
 done
 
@@ -120,7 +121,8 @@ date >> "${TEMP_CREDENTIALS_FILE}"
 
 info "Resetting and retrieving elastic user password..."
 PASSWORD_OUTPUT=$(podman exec -it es01 /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic -a -f -b 2>>"${TEMP_CREDENTIALS_FILE}")
-ELASTIC_PASSWORD=$(echo "$PASSWORD_OUTPUT" | grep -oP 'New value: \K.*')
+###Problem with newline or extra spaces###ELASTIC_PASSWORD=$(echo "$PASSWORD_OUTPUT" | grep -oP 'New value: \K.*')
+ELASTIC_PASSWORD=$(echo "$PASSWORD_OUTPUT" | grep -oP 'New value: \K.*' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
 
 if [ -n "${ELASTIC_PASSWORD}" ]; then
   echo "Elastic password set to: ${ELASTIC_PASSWORD}"
@@ -133,7 +135,7 @@ else
 fi
 
 info "Retrieving Kibana enrollment token..."
-KIBANA_ENROLLMENT_TOKEN=$(podman exec -it es01 /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token -s kibana 2>>"${TEMP_CREDENTIALS_FILE}")
+KIBANA_ENROLLMENT_TOKEN=$(podman exec -it es01 /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token -s kibana 2>>"${TEMP_CREDENTIALS_FILE}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
 if [ -n "${KIBANA_ENROLLMENT_TOKEN}" ]; then
   echo "Kibana enrollment token: ${KIBANA_ENROLLMENT_TOKEN}"
   echo "Kibana enrollment token: ${KIBANA_ENROLLMENT_TOKEN}" >> "${TEMP_CREDENTIALS_FILE}"
@@ -157,9 +159,9 @@ info "SSL certificate copied to ${CERT_DIR}/http_ca.crt"
 # --- Step 8: Make REST API Call ---
 info "Step 8: Make REST API Call"
 
-EXTRACTED_PASSWORD=$(grep "Elastic password set to:" "${TEMP_CREDENTIALS_FILE}" | sed 's/.*Elastic password set to: //')
+###Problem with newline or extra spaces###EXTRACTED_PASSWORD=$(grep "Elastic password set to:" "${TEMP_CREDENTIALS_FILE}" | sed 's/.*Elastic password set to: //')
 
-sleep 20
+EXTRACTED_PASSWORD=$(grep "Elastic password set to:" "${TEMP_CREDENTIALS_FILE}" | sed 's/.*Elastic password set to: //' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
 
 if [ -f "${CERT_DIR}/http_ca.crt" ]; then
   CREDENTIALS="elastic:${EXTRACTED_PASSWORD}"
@@ -187,3 +189,4 @@ info "Remember to check the temporary file '${TEMP_CREDENTIALS_FILE}' for the El
   echo "Recommendation: You can store this password as an environment variable in your shell using:"
   echo "export ELASTIC_PASSWORD=$ELASTIC_PASSWORD"
   echo "Kibana enrollment token: ${KIBANA_ENROLLMENT_TOKEN}"
+exit 0
