@@ -1,10 +1,15 @@
 #!/bin/bash
 
 # Script to set up Elasticsearch 8.17.4 using Podman with the hardened Wolfi image, based on the official Docker documentation.
+
 # Note: Using Wolfi images might have specific kernel or dependency requirements.
+
 # https://www.elastic.co/guide/en/elasticsearch/reference/8.17/docker.html
+
 # GNU GENERAL PUBLIC LICENSE Version 3
+
 # Harisfazillah Jamel and Google Gemini
+
 # 31 Mac 2025
 
 set -e
@@ -127,6 +132,8 @@ if [ -n "${ELASTIC_PASSWORD}" ]; then
   echo "Elastic password set to: ${ELASTIC_PASSWORD}"
   echo "Elastic password set to: ${ELASTIC_PASSWORD}" >> "${TEMP_CREDENTIALS_FILE}"
   export ELASTIC_PASSWORD="${ELASTIC_PASSWORD}" # Optional: Set as environment variable
+  echo "Recommendation: You can store this password as an environment variable in your shell using:"
+  echo "export ELASTIC_PASSWORD=\"${ELASTIC_PASSWORD}\""
 else
   echo "Error resetting elastic password. Check ${TEMP_CREDENTIALS_FILE}"
 fi
@@ -180,3 +187,5 @@ fi
 echo ""
 info "Elasticsearch setup complete! You can access it at https://localhost:9200."
 info "Remember to check the temporary file '${TEMP_CREDENTIALS_FILE}' for the Elasticsearch password and the Kibana enrollment token."
+info "Recommendation: For easier interaction with Elasticsearch, consider exporting the password as an environment variable:"
+info "export ELASTIC_PASSWORD=\"$(grep 'Elastic password set to:' '${TEMP_CREDENTIALS_FILE}' | sed 's/.*Elastic password set to: //')\""
