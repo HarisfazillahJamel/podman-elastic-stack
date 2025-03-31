@@ -121,15 +121,26 @@ date >> "${TEMP_CREDENTIALS_FILE}"
 
 info "Resetting and retrieving elastic user password..."
 PASSWORD_OUTPUT=$(podman exec -it es01 /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic -a -f -b 2>>"${TEMP_CREDENTIALS_FILE}")
+###Problem with newline or extra spaces###ELASTIC_PASSWORD=$(echo "$PASSWORD_OUTPUT" | grep -oP 'New value: \K.*')
 ELASTIC_PASSWORD=$(echo "$PASSWORD_OUTPUT" | grep -oP 'New value: \K.*' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
 
 if [ -n "${ELASTIC_PASSWORD}" ]; then
   echo "Elastic password set to: ${ELASTIC_PASSWORD}"
   echo "Elastic password set to: ${ELASTIC_PASSWORD}" >> "${TEMP_CREDENTIALS_FILE}"
+  # export ELASTIC_PASSWORD="${ELASTIC_PASSWORD}" # Removed export
   echo "Recommendation: You can store this password as an environment variable in your shell using:"
-  echo "ELASTIC_PASSWORD=$ELASTIC_PASSWORD"
+  echo "export ELASTIC_PASSWORD=${ELASTIC_PASSWORD}"
 else
   echo "Error resetting elastic password. Check ${TEMP_CREDENTIALS_FILE}"
+fi
+
+info "Retrieving Kibana enrollment token..."
+KIBANA_ENROLLMENT_TOKEN=$(podman exec -it es01 /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token -s kibana 2>>"${TEMP_CREDENTIALS_FILE}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+if [ -n "${KIBANA_ENROLLMENT_TOKEN}" ]; then
+  echo "Kibana enrollment token: ${KIBANA_ENROLLMENT_TOKEN}"
+  echo "Kibana enrollment token: ${KIBANA_ENROLLMENT_TOKEN}" >> "${TEMP_CREDENTIALS_FILE}"
+else
+  echo "Error retrieving Kibana enrollment token. Check ${TEMP_CREDENTIALS_FILE}"
 fi
 
 # --- Step 7: Copy SSL Certificate ---
@@ -148,13 +159,17 @@ info "SSL certificate copied to ${CERT_DIR}/http_ca.crt"
 # --- Step 8: Make REST API Call ---
 info "Step 8: Make REST API Call"
 
-EXTRACTED_PASSWORD=$(grep "Elastic password set to:" "${TEMP_CREDENTIALS_FILE}" | sed 's/.*Elastic password set to: //' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+###Problem with newline or extra spaces###EXTRACTED_PASSWORD=$(grep "Elastic password set to:" "${TEMP_CREDENTIALS_FILE}" | sed 's/.*Elastic password set to: //')
 
+EXTRACTED_PASSWORD=$(grep "Elastic password set to:" "${TEMP_CREDENTIALS_FILE}" | sed 's/.*Elastic password set to: //' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
 
 if [ -f "${CERT_DIR}/http_ca.crt" ]; then
   CREDENTIALS="elastic:${EXTRACTED_PASSWORD}"
   BASE64_CREDENTIALS=$(echo -n "$CREDENTIALS" | base64)
   AUTHORIZATION_HEADER="Authorization: Basic ${BASE64_CREDENTIALS}"
+  # export CREDENTIALS="elastic:${EXTRACTED_PASSWORD}" # Removed export
+  # export BASE64_CREDENTIALS=$(echo -n "$CREDENTIALS" | base64) # Removed export
+  # export AUTHORIZATION_HEADER="Authorization: Basic ${BASE64_CREDENTIALS}" # Removed export
 
   info "Making REST API call using -H"
   /usr/bin/curl --cacert "$CERT_DIR/http_ca.crt" -H "$AUTHORIZATION_HEADER" https://localhost:9200
@@ -168,19 +183,10 @@ else
   echo "Error: http_ca.crt not found. Skipping API calls."
 fi
 
-# --- Step 9: Retrieve and Clean Kibana Enrollment Token ---
-info "Retrieving Kibana enrollment token..."
-KIBANA_ENROLLMENT_TOKEN=$(podman exec -it es01 /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token -s kibana 2>>"${TEMP_CREDENTIALS_FILE}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-if [ -n "${KIBANA_ENROLLMENT_TOKEN}" ]; then
-  echo "Kibana enrollment token: ${KIBANA_ENROLLMENT_TOKEN}"
-  echo "Kibana enrollment token: ${KIBANA_ENROLLMENT_TOKEN}" >> "${TEMP_CREDENTIALS_FILE}"
-else
-  echo "Error retrieving Kibana enrollment token. Check ${TEMP_CREDENTIALS_FILE}"
-fi
-
 echo ""
 info "Elasticsearch setup complete! You can access it at https://localhost:9200."
 info "Remember to check the temporary file '${TEMP_CREDENTIALS_FILE}' for the Elasticsearch password and the Kibana enrollment token."
-echo "Recommendation: You can store this password as an environment variable in your shell using:"
-echo "ELASTIC_PASSWORD=$ELASTIC_PASSWORD"
-echo "Kibana enrollment token: ${KIBANA_ENROLLMENT_TOKEN}"
+  echo "Recommendation: You can store this password as an environment variable in your shell using:"
+  echo "export ELASTIC_PASSWORD=$ELASTIC_PASSWORD"
+  echo "Kibana enrollment token: ${KIBANA_ENROLLMENT_TOKEN}"
+exit 0
