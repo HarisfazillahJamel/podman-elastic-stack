@@ -46,5 +46,102 @@ This script automates the setup of Elasticsearch version 8.17.4 using Podman and
 
 Enjoy using your new Elasticsearch setup!
 
+Harisfazillah Jamel aka LinuxMalaysia
 20250331
 
+
+# Kibana Setup Script with Podman
+
+## Description
+
+This script automates the setup of Kibana 8.17.4 using Podman with the hardened Wolfi image. It follows the official Docker documentation from Elastic.  The script configures Kibana to run with its own custom `kibana.yml` and utilizes Podman for container management.
+
+**Important Note:** Wolfi images might have specific kernel or dependency requirements.
+
+## Prerequisites
+
+Before running this script, ensure the following prerequisites are met:
+
+* **Podman:** Podman must be installed on the system.
+* **podman-compose:** Podman Compose must be installed.
+* **Elasticsearch Setup:** The Elasticsearch setup script (`setup_elasticsearch.sh`) should be executed successfully *before* running this script, as this script relies on the Elasticsearch environment.
+* **Elasticsearch Certificate:** The script requires the Elasticsearch certificate file (`http_ca.crt`), which is generated during the Elasticsearch setup.
+* **Network:** The Podman network created by the Elasticsearch setup script must exist.
+* **Elasticsearch Password:** The Elasticsearch password must be available in the temporary credentials file created by the Elasticsearch setup script.
+
+## Features
+
+* Automates Kibana setup using Podman.
+* Uses a hardened Wolfi image for Kibana.
+* Configures Kibana with a custom `kibana.yml` file.
+* Sets up Kibana to communicate with Elasticsearch.
+* Manages Kibana data using a Podman volume.
+* Retrieves the Elasticsearch container IP address.
+* Retrieves the Kibana enrollment token from Elasticsearch.
+* Provides instructions for retrieving the Kibana verification code.
+
+## How It Works
+
+The script performs the following steps:
+
+1.  **Checks Prerequisites:** Verifies that Podman and Podman Compose are installed and that the Elasticsearch setup has been completed.
+2.  **Checks for Certificate File:** Ensures that the Elasticsearch certificate file exists.
+3.  **Checks for Elasticsearch Network:** Ensures that the Podman network created by the Elasticsearch setup script exists.
+4.  **Checks Elasticsearch Status and Version:**
+    * Retrieves the Elasticsearch password from the temporary credentials file.
+    * Checks if Elasticsearch is running and retrieves its version.
+5.  **Pulls Kibana Docker Image:** Pulls the Kibana Docker image from the Docker Hub, tagged with the Elasticsearch version.
+6.  **Gets Default Kibana Configuration:**
+    * Creates a temporary Kibana container.
+    * Copies the default `kibana.yml` file from the container to the host.
+    * Stops and removes the temporary container.  The user is expected to review and customize this file.
+7.  **Starts Kibana Container:**
+    * Creates a `podman-compose.yml` file to define the Kibana service.
+    * Starts the Kibana container using `podman-compose up`.
+8.  **Waits for Kibana to Start:** Waits for the Kibana container to start.
+9.  **Gets Elasticsearch Container IP Address:** Retrieves the IP address of the Elasticsearch container.
+10. **Retrieves Kibana Enrollment Token:** Retrieves the Kibana enrollment token from the Elasticsearch container and saves it to the temporary credentials file.
+11.  **Provides Post-Installation Information:**
+    * Displays a message indicating that the Kibana setup is complete.
+    * Displays the URL to access Kibana in a web browser (http://localhost:5601).
+    * Displays the command to retrieve the Kibana verification code.
+
+## Usage
+
+1.  **Ensure Elasticsearch is Running:** Make sure Elasticsearch is set up and running *before* executing this script.
+2.  **Run the Script:** Execute the script from your terminal:
+
+    ```bash
+    ./setup_kibana.sh
+    ```
+
+3.  **Review Configuration:** Review the `kibana.yml` file in the `elk-wolfi` directory and customize it as needed.
+4.  **Access Kibana:** Once the script completes, access Kibana in your web browser at `http://localhost:5601`.
+5.  **Retrieve Verification Code:** Run the command provided by the script to get the Kibana verification code and use it during the initial Kibana setup in your browser.
+
+## Variables
+
+The script uses the following variables:
+
+* `ELK_BASE_DIR`: Base directory for ELK-related files (where the script is located).
+* `ELK_DIR`: Directory for ELK-related files (`${ELK_BASE_DIR}/elk-wolfi`).
+* `CERT_DIR`: Directory for SSL certificates (`${ELK_DIR}/certs`).
+* `KIBANA_IMAGE_NAME`: Name of the Kibana Docker image (`docker.elastic.co/kibana/kibana-wolfi`).
+* `KIBANA_CONTAINER_NAME`: Name for the Kibana container (`kib01`).
+* `KIBANA_PORT`: Port on which Kibana will be accessible (`5601`).
+* `NETWORK_NAME`: Name of the Podman network.
+* `TEMP_CREDENTIALS_FILE`: File to store temporary credentials (like Elasticsearch password) (`${ELK_DIR}/temp_credentials.txt`).
+
+## Helper Functions
+
+The script defines the following helper functions:
+
+* `info()`:  Prints informational messages with a separator.
+* `command_exists()`: Checks if a command exists in the system's PATH.
+
+## License
+
+The script is licensed under the GNU GENERAL PUBLIC LICENSE Version 3.
+
+Harisfazillah Jamel aka LinuxMalaysia
+20250402
