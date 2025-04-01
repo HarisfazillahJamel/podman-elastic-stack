@@ -7,6 +7,11 @@ services:
       - elk-wolfi_elastic
     ports:
       - "5601:5601"
+    volumes:
+      - kibana_data:/data/kibana_data
+      - ./kibana.yml:/usr/share/kibana/config/kibana.yml # Mount custom kibana.yml to standard config dir
+volumes:
+  kibana_data:
 networks:
   elk-wolfi_elastic:
     external: true
