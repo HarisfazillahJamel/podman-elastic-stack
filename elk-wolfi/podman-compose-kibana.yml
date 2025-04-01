@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  kibana:
+    image: docker.elastic.co/kibana/kibana-wolfi:8.17.4
+    container_name: kib01
+    networks:
+      - elk-wolfi_elastic
+    ports:
+      - "5601:5601"
+networks:
+  elk-wolfi_elastic:
+    external: true
