@@ -12,11 +12,11 @@ This script automates the setup of Elasticsearch version 8.17.4 using Podman and
 1.  **Save the Script:** Save the provided bash script as `setup-elasticsearch.sh` or any other name you prefer.
 2.  **Make it Executable:** Open your terminal and navigate to the directory where you saved the script. Make the script executable using the command:
     ```bash
-    chmod +x setup-elasticsearch.sh
+    chmod +x setup_elasticsearch.sh
     ```
 3.  **Run the Script:** Execute the script using:
     ```bash
-    ./setup-elasticsearch.sh
+    ./setup_elasticsearch.sh
     ```
     You might need `sudo` if the script requires root privileges for installing Podman or Podman Compose, depending on your system configuration.
 

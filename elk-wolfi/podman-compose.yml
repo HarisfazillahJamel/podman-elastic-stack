@@ -10,6 +10,8 @@ services:
     environment:
       - discovery.type=single-node
     mem_limit: 1GB
+    volumes:
+      - "/data/es_data:/usr/share/elasticsearch/data" # Mount the data volume
 networks:
   elastic:
     driver: bridge

@@ -1,23 +1,10 @@
 #!/bin/bash
-# Script to set up Elasticsearch 8.17.4 using Podman with a hardened Wolfi image,
-# based on the official Docker documentation.
+# Script to set up Elasticsearch 8.17.4 using Podman with the hardened Wolfi image, based on the official Docker documentation.
 # Note: Using Wolfi images might have specific kernel or dependency requirements.
 # https://www.elastic.co/guide/en/elasticsearch/reference/8.17/docker.html
 # GNU GENERAL PUBLIC LICENSE Version 3
 # Harisfazillah Jamel and Google Gemini
 # 31 Mac 2025
-
-# --- Script Description ---
-# This script automates the process of setting up Elasticsearch 8.17.4
-# using Podman, a containerization tool similar to Docker. It uses
-# a hardened Wolfi image, which is designed with security in mind.
-# The script also handles tasks like retrieving the Elasticsearch
-# password and SSL certificates, and now uses a dedicated volume for data.
-
-# --- Key Technologies ---
-# * Podman: A containerization engine (like Docker, but rootless)
-# * Elasticsearch: A search and analytics engine
-# * Wolfi: A Linux distribution designed for security and small size
 
 set -e
 
@@ -26,10 +13,9 @@ SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 
 # --- Variables ---
 ELK_VERSION="8.17.4"
-ELK_BASE_DIR="${SCRIPT_DIR}"
+ELK_BASE_DIR="${SCRIPT_DIR}" # Base directory is where the script is located
 ELK_DIR="${ELK_BASE_DIR}/elk-wolfi"
 CERT_DIR="${ELK_DIR}/certs"
-DATA_DIR="/data/es_data"  # Dedicated directory for Elasticsearch data
 # Using hardened Wolfi image
 ELASTICSEARCH_IMAGE="docker.elastic.co/elasticsearch/elasticsearch-wolfi:${ELK_VERSION}"
 KIBANA_IMAGE="docker.elastic.co/kibana/kibana:${ELK_VERSION}"
@@ -41,7 +27,7 @@ info() {
   echo "--- $1 ---"
 }
 
-command_exists() {
+command_exists () {
   command -v "$1" >/dev/null 2>&1
 }
 
@@ -64,19 +50,6 @@ if ! command_exists podman-compose; then
 else
   info "podman-compose is already installed."
 fi
-
-# --- Step 2: Create Data Directory ---
-info "Step 2: Create Data Directory"
-# Check if the data directory already exists
-if [ -d "${DATA_DIR}" ]; then
-  info "Data directory '${DATA_DIR}' already exists. Aborting installation."
-  echo "Please back up any important data in this directory, then delete it or move it, and run the script again."
-  exit 1
-fi
-# Create the parent directory /data and then the subdirectory for Elasticsearch
-sudo mkdir -p "/data"
-sudo mkdir -p "${DATA_DIR}"
-sudo chown -R 1000:1000 "${DATA_DIR}" # Elasticsearch user has UID 1000
 
 # --- Step 3: Pull Elasticsearch Docker Image (Wolfi hardened image) ---
 info "Step 3: Pull Elasticsearch Docker Image (Wolfi hardened image)"
@@ -112,8 +85,6 @@ services:
     environment:
       - discovery.type=single-node
     mem_limit: 1GB
-    volumes:
-      - "${DATA_DIR}:/usr/share/elasticsearch/data" # Mount the data volume
 networks:
   ${NETWORK_NAME}:
     driver: bridge
@@ -134,6 +105,7 @@ done
 
 # Change to the base directory
 cd "${ELK_BASE_DIR}"
+
 # Check if ELK_DIR exists
 if [ -d "${ELK_DIR}" ]; then
   info "Directory '${ELK_DIR}' already exists. Changing into it."
@@ -175,7 +147,9 @@ info "SSL certificate copied to ${CERT_DIR}/http_ca.crt"
 
 # --- Step 8: Make REST API Call ---
 info "Step 8: Make REST API Call"
+
 EXTRACTED_PASSWORD=$(grep "Elastic password set to:" "${TEMP_CREDENTIALS_FILE}" | sed 's/.*Elastic password set to: //' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+
 
 if [ -f "${CERT_DIR}/http_ca.crt" ]; then
   CREDENTIALS="elastic:${EXTRACTED_PASSWORD}"
