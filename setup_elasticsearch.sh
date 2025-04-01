@@ -13,6 +13,7 @@
 # a hardened Wolfi image, which is designed with security in mind.
 # The script also handles tasks like retrieving the Elasticsearch
 # password and SSL certificates, and now uses a dedicated volume for data.
+# The data directory is now created based on the Elasticsearch container name.
 
 # --- Key Technologies ---
 # * Podman: A containerization engine (like Docker, but rootless)
@@ -29,7 +30,8 @@ ELK_VERSION="8.17.4"
 ELK_BASE_DIR="${SCRIPT_DIR}"
 ELK_DIR="${ELK_BASE_DIR}/elk-wolfi"
 CERT_DIR="${ELK_DIR}/certs"
-DATA_DIR="/data/es_data"  # Dedicated directory for Elasticsearch data
+CONTAINER_NAME="es01" # Define the Elasticsearch container name
+DATA_DIR="/data/${CONTAINER_NAME}" # Dedicated directory for Elasticsearch data, based on container name.
 # Using hardened Wolfi image
 ELASTICSEARCH_IMAGE="docker.elastic.co/elasticsearch/elasticsearch-wolfi:${ELK_VERSION}"
 KIBANA_IMAGE="docker.elastic.co/kibana/kibana:${ELK_VERSION}"
@@ -104,7 +106,7 @@ version: '3.8'
 services:
   elasticsearch:
     image: ${ELASTICSEARCH_IMAGE}
-    container_name: es01
+    container_name: ${CONTAINER_NAME}
     networks:
       - ${NETWORK_NAME}
     ports:
@@ -148,14 +150,14 @@ echo "--- Step 6: Retrieve and Store Elasticsearch Password ---" > "${TEMP_CREDE
 date >> "${TEMP_CREDENTIALS_FILE}"
 
 info "Resetting and retrieving elastic user password..."
-PASSWORD_OUTPUT=$(podman exec -it es01 /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic -a -f -b 2>>"${TEMP_CREDENTIALS_FILE}")
+PASSWORD_OUTPUT=$(podman exec -it "${CONTAINER_NAME}" /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic -a -f -b 2>>"${TEMP_CREDENTIALS_FILE}")
 ELASTIC_PASSWORD=$(echo "$PASSWORD_OUTPUT" | grep -oP 'New value: \K.*' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
 
 if [ -n "${ELASTIC_PASSWORD}" ]; then
   echo "Elastic password set to: ${ELASTIC_PASSWORD}"
   echo "Elastic password set to: ${ELASTIC_PASSWORD}" >> "${TEMP_CREDENTIALS_FILE}"
   echo "Recommendation: You can store this password as an environment variable in your shell using:"
-  echo "ELASTIC_PASSWORD=$ELASTIC_PASSWORD"
+  echo "ELASTIC_PASSWORD=${ELASTIC_PASSWORD}"
 else
   echo "Error resetting elastic password. Check ${TEMP_CREDENTIALS_FILE}"
 fi
@@ -170,7 +172,7 @@ else
   info "Certificate directory '${CERT_DIR}' does not exist."
 fi
 mkdir -p "${CERT_DIR}"
-podman cp es01:/usr/share/elasticsearch/config/certs/http_ca.crt "${CERT_DIR}/http_ca.crt"
+podman cp "${CONTAINER_NAME}":/usr/share/elasticsearch/config/certs/http_ca.crt "${CERT_DIR}/http_ca.crt"
 info "SSL certificate copied to ${CERT_DIR}/http_ca.crt"
 
 # --- Step 8: Make REST API Call ---
@@ -179,24 +181,24 @@ EXTRACTED_PASSWORD=$(grep "Elastic password set to:" "${TEMP_CREDENTIALS_FILE}" 
 
 if [ -f "${CERT_DIR}/http_ca.crt" ]; then
   CREDENTIALS="elastic:${EXTRACTED_PASSWORD}"
-  BASE64_CREDENTIALS=$(echo -n "$CREDENTIALS" | base64)
+  BASE64_CREDENTIALS=$(echo -n "${CREDENTIALS}" | base64)
   AUTHORIZATION_HEADER="Authorization: Basic ${BASE64_CREDENTIALS}"
 
   info "Making REST API call using -H"
-  /usr/bin/curl --cacert "$CERT_DIR/http_ca.crt" -H "$AUTHORIZATION_HEADER" https://localhost:9200
+  /usr/bin/curl --cacert "${CERT_DIR}/http_ca.crt" -H "${AUTHORIZATION_HEADER}" https://localhost:9200
 
   info "Waiting for 5 seconds..."
   sleep 5
 
   info "Making REST API call using -u"
-  /usr/bin/curl --cacert "$CERT_DIR/http_ca.crt" -u "$CREDENTIALS" https://localhost:9200
+  /usr/bin/curl --cacert "${CERT_DIR}/http_ca.crt" -u "${CREDENTIALS}" https://localhost:9200
 else
   echo "Error: http_ca.crt not found. Skipping API calls."
 fi
 
 # --- Step 9: Retrieve and Clean Kibana Enrollment Token ---
 info "Retrieving Kibana enrollment token..."
-KIBANA_ENROLLMENT_TOKEN=$(podman exec -it es01 /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token -s kibana 2>>"${TEMP_CREDENTIALS_FILE}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+KIBANA_ENROLLMENT_TOKEN=$(podman exec -it "${CONTAINER_NAME}" /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token -s kibana 2>>"${TEMP_CREDENTIALS_FILE}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
 if [ -n "${KIBANA_ENROLLMENT_TOKEN}" ]; then
   echo "Kibana enrollment token: ${KIBANA_ENROLLMENT_TOKEN}"
   echo "Kibana enrollment token: ${KIBANA_ENROLLMENT_TOKEN}" >> "${TEMP_CREDENTIALS_FILE}"
@@ -208,5 +210,5 @@ echo ""
 info "Elasticsearch setup complete! You can access it at https://localhost:9200."
 info "Remember to check the temporary file '${TEMP_CREDENTIALS_FILE}' for the Elasticsearch password and the Kibana enrollment token."
 echo "Recommendation: You can store this password as an environment variable in your shell using:"
-echo "ELASTIC_PASSWORD=$ELASTIC_PASSWORD"
+echo "ELASTIC_PASSWORD=${ELASTIC_PASSWORD}"
 echo "Kibana enrollment token: ${KIBANA_ENROLLMENT_TOKEN}"
