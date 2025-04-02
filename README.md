@@ -47,6 +47,7 @@ This script automates the setup of Elasticsearch version 8.17.4 using Podman and
 Enjoy using your new Elasticsearch setup!
 
 Harisfazillah Jamel aka LinuxMalaysia
+
 20250331
 
 
@@ -139,9 +140,57 @@ The script defines the following helper functions:
 * `info()`:  Prints informational messages with a separator.
 * `command_exists()`: Checks if a command exists in the system's PATH.
 
+## How to Cleanup
+
+To remove the resources created by this script, follow these steps:
+
+1.  **Stop and Remove Kibana Container:**
+
+    ```bash
+    cd ${ELK_BASE_DIR}/elk-wolfi
+    podman-compose -f podman-compose-kibana.yml down
+    ```
+
+2.  **Remove the Network:**
+
+    ```bash
+    podman network prune
+    ```
+
+3.  **Delete the ELK Directory:**
+
+    ```bash
+    rm -rf ${ELK_BASE_DIR}/elk-wolfi
+    ```
+
+    This will remove the configuration files and any other data created by the script.
+
+4.  **Delete the /data directory:**
+
+    ```bash
+    rm -rf /data
+    ```
+
+    **Caution:** This will delete any data stored in the `/data` directory on your system.  Only proceed if you are sure you have backed up any important data and it is safe to delete.  This directory is used for the elasticsearch data volume.
+
+## References
+
+* Phase 1: Install Almalinux 9 Windows Subsystem for Linux version 2 (WSL2)
+    * [https://www.linuxmalaysia.com/2025/04/howto-install-wsl2-and-move-almalinux-9.html](https://www.linuxmalaysia.com/2025/04/howto-install-wsl2-and-move-almalinux-9.html)
+* HOWTO: Install Almalinux 9 WSL2 and Move AlmaLinux 9 to Another Drive
+    * [https://gist.github.com/linuxmalaysia/491098eea7160aa184e85c19d6b68acc](https://gist.github.com/linuxmalaysia/491098eea7160aa184e85c19d6b68acc)
+* Phase 2: Install WSL2 and Move AlmaLinux 9 to Another Drive
+    * [https://medium.com/@linuxmalaysia/phase-2-install-wsl2-and-move-almalinux-9-to-another-drive-bb9f9649fc59](https://medium.com/@linuxmalaysia/phase-2-install-wsl2-and-move-almalinux-9-to-another-drive-bb9f9649fc59)
+* setup\_elasticsearch.sh explain
+    * [https://gist.github.com/linuxmalaysia/3c79011ceeca38e434b7e51da3fa63b8](https://gist.github.com/linuxmalaysia/3c79011ceeca38e434b7e51da3fa63b8)
+* setup\_kibana.sh explain
+    * [https://gist.github.com/linuxmalaysia/7782c879be1e22469d39bb1557505623](https://gist.github.com/linuxmalaysia/7782c879be1e22469d39bb1557505623)
+
 ## License
 
 The script is licensed under the GNU GENERAL PUBLIC LICENSE Version 3.
 
 Harisfazillah Jamel aka LinuxMalaysia
+
 20250402
+
