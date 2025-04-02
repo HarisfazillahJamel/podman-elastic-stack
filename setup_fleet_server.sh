@@ -4,7 +4,7 @@
 # GNU GENERAL PUBLIC LICENSE Version 3
 # Harisfazillah Jamel and Google Gemini
 # 2 Apr 2025
-######## STILL WORK IN PROGRESS ###
+### STILL WORK IN PROGRESS
 
 set -e
 
