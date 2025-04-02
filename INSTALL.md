@@ -21,7 +21,7 @@ This document provides instructions for setting up Elasticsearch 8.17.4 and Kiba
 This setup involves two primary components:
 
 * **Elasticsearch:** Elasticsearch is set up using a bash script (`setup_elasticsearch.sh`) which automates the process of installing and configuring Elasticsearch 8.17.4 with Podman and a hardened Wolfi image.
-* **Kibana:** Kibana is set up using a separate bash script (`setup_kibana.sh`) and is configured to connect to the Elasticsearch instance.
+* **Kibana:** Kibana is set up using a bash script (`setup_kibana.sh`) and is configured to connect to the Elasticsearch instance.
 
 Both scripts aim to simplify the deployment of Elasticsearch and Kibana, leveraging Podman for containerization and hardened Wolfi images for enhanced security.
 
@@ -86,14 +86,14 @@ The `setup_elasticsearch.sh` script performs the following actions:
 8.  **Verifies Installation:** The script uses `curl` to make a basic API call to Elasticsearch to verify that it is running correctly.
 9.  **Cleans Up Credentials:** The script removes any leading or trailing whitespace or newline characters from both the Elasticsearch password and the Kibana enrollment token in the temporary credentials file.
 
-#### Important Elasticsearch Information
+####   Important Elasticsearch Information
 
 * **Elasticsearch Password:** The generated password for the `elastic` user is stored in the `elk-wolfi/temp_credentials.txt` file.  It is crucial to secure this file.
 * **Kibana Enrollment Token:** The Kibana enrollment token is also located in the `elk-wolfi/temp_credentials.txt` file. This token is required to connect Kibana to Elasticsearch.
 * **Access Elasticsearch:** Elasticsearch can be accessed at `https://localhost:9200`.  Use the username `elastic` and the password from the `temp_credentials.txt` file when prompted.
 * **Wolfi Image:** The script uses the hardened Wolfi image for Elasticsearch, which may have specific system requirements.
 
-## Kibana Setup Details
+##   Kibana Setup Details
 
 The `setup_kibana.sh` script performs the following actions:
 
@@ -108,7 +108,7 @@ The `setup_kibana.sh` script performs the following actions:
     * Creates a temporary Kibana container.
     * Copies the default `kibana.yml` file from the container to the host.
     * Stops and removes the temporary container.  The user is expected to review and customize this file.
-    7.  **Starts Kibana Container:**
+7.  **Starts Kibana Container:**
     * Creates a `podman-compose.yml` file to define the Kibana service.
     * Starts the Kibana container using `podman-compose up`.
 8.  **Waits for Kibana to Start:** Waits for the Kibana container to start.
@@ -119,12 +119,12 @@ The `setup_kibana.sh` script performs the following actions:
     * Displays the URL to access Kibana in a web browser (http://localhost:5601).
     * Displays the command to retrieve the Kibana verification code.
 
-#### Important Kibana Information
+####   Important Kibana Information
 
 * **Kibana Access:** Kibana will be accessible at `http://localhost:5601` after the setup is complete.
 * **Kibana Configuration:** The `kibana.yml` file should be reviewed and customized as needed.
 
-## How to Cleanup
+##   How to Cleanup
 
 To remove the resources created by these scripts, follow these steps:
 
@@ -158,7 +158,7 @@ To remove the resources created by these scripts, follow these steps:
 
     **Caution:** This will delete any data stored in the `/data` directory on your system.  Only proceed if you are sure you have backed up any important data and it is safe to delete.  This directory is used for the Elasticsearch and Kibana data volume.
 
-## Variables
+##   Variables
 
 The scripts use the following variables:
 
@@ -171,18 +171,18 @@ The scripts use the following variables:
 * `NETWORK_NAME`: Name of the Podman network.
 * `TEMP_CREDENTIALS_FILE`: File to store temporary credentials (like Elasticsearch password) (`${ELK_DIR}/temp_credentials.txt`).
 
-## Helper Functions
+##   Helper Functions
 
 The scripts define the following helper functions:
 
 * `info()`: Prints informational messages with a separator.
 * `command_exists()`: Checks if a command exists in the system's PATH.
 
-## License
+##   License
 
 The scripts are licensed under the GNU GENERAL PUBLIC LICENSE Version 3.
 
-## References
+##   References
 
 * Phase 1: Install Almalinux 9 Windows Subsystem for Linux version 2 (WSL2)
     * [https://www.linuxmalaysia.com/2025/04/howto-install-wsl2-and-move-almalinux-9.html](https://www.linuxmalaysia.com/2025/04/howto-install-wsl2-and-move-almalinux-9.html)
@@ -195,7 +195,7 @@ The scripts are licensed under the GNU GENERAL PUBLIC LICENSE Version 3.
 * `setup_kibana.sh` explain
     * [https://gist.github.com/linuxmalaysia/7782c879be1e22469d39bb1557505623](https://gist.github.com/linuxmalaysia/7782c879be1e22469d39bb1557505623)
 
-## Git Repository
+##   Git Repository
 
 The scripts for setting up Elasticsearch and Kibana are available in the following Git repository:
 
@@ -210,13 +210,15 @@ You can clone this repository to your local machine using the following steps:
     mkdir ~/myprojects
     cd ~/myprojects
     ```
-3.  **Clone the repository:** Use the `git clone` command to copy the repository to your local machine:
+
+3.  **Clone the repository:** Use the following `git clone` command:
 
     ```bash
     git clone [https://github.com/HarisfazillahJamel/podman-elastic-stack.git](https://github.com/HarisfazillahJamel/podman-elastic-stack.git)
     ```
 
     This will create a directory named `podman-elastic-stack` in your current directory and download the repository files into it.
+
 4.  **Navigate to the repository:** Change to the newly created directory:
 
     ```bash
