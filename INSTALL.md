@@ -214,7 +214,7 @@ You can clone this repository to your local machine using the following steps:
 3.  **Clone the repository:** Use the following `git clone` command:
 
     ```bash
-    git clone [https://github.com/HarisfazillahJamel/podman-elastic-stack.git](https://github.com/HarisfazillahJamel/podman-elastic-stack.git)
+    git clone https://github.com/HarisfazillahJamel/podman-elastic-stack.git
     ```
 
     This will create a directory named `podman-elastic-stack` in your current directory and download the repository files into it.
