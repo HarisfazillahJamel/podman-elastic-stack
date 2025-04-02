@@ -7,13 +7,14 @@ This document provides instructions for setting up Elasticsearch 8.17.4 and Kiba
 * [Description](#description)
 * [Prerequisites](#prerequisites)
 * [Usage](#usage)
-* [Elasticsearch Setup Details](#elasticsearch-setup-details)
-* [Kibana Setup Details](#kibana-setup-details)
+* [Elasticsearch Setup](#elasticsearch-setup)
+* [Kibana Setup](#kibana-setup)
 * [How to Cleanup](#how-to-cleanup)
 * [Variables](#variables)
 * [Helper Functions](#helper-functions)
 * [License](#license)
 * [References](#references)
+* [Git Repository](#git-repository)
 
 ## Description
 
@@ -34,6 +35,7 @@ Before proceeding, ensure the following prerequisites are met:
 * **Podman Compose:** Podman Compose is required to manage the Elasticsearch and Kibana containers. Installation instructions can be found on the Podman website or through your distribution's package manager.
 * **Operating System:** This setup is primarily designed for Linux-based systems.  For Windows, it is expected to work within a WSL2 environment.
 * **Network Connectivity:** Ensure that your system has network connectivity to download the required container images and packages.
+* **Git (Optional):** If you want to clone the repository containing the setup scripts, Git needs to be installed.
 
 ## Usage
 
@@ -41,8 +43,8 @@ The setup involves running two separate scripts: first for Elasticsearch, and th
 
 ### 1. Elasticsearch Setup
 
-1.  **Save the Script:** Save the Elasticsearch setup script as `setup_elasticsearch.sh`.
-2.  **Make it Executable:** Open your terminal, navigate to the directory where you saved the script, and make it executable:
+1.  **Clone the Repository (Recommended):** It is recommended to clone the repository to get the latest version of the scripts. See the [Git Repository](#git-repository) section for instructions.  Alternatively, you can download the `setup_elasticsearch.sh` script directly.
+2.  **Make the Script Executable:** Open your terminal, navigate to the directory where you saved the script, and make it executable:
 
     ```bash
     chmod +x setup_elasticsearch.sh
@@ -52,13 +54,14 @@ The setup involves running two separate scripts: first for Elasticsearch, and th
     ```bash
     ./setup_elasticsearch.sh
     ```
+
     You might need `sudo` if the script requires elevated privileges.
 
 ### 2. Kibana Setup
 
 1.  **Ensure Elasticsearch is Running:** The Kibana setup script assumes that Elasticsearch is already running.  Make sure the Elasticsearch setup script has been run successfully.
-2.  **Save the Script:** Save the Kibana setup script as `setup_kibana.sh`.
-3.  **Make it Executable:** Make the script executable:
+2.  **Clone the Repository (Recommended):** It is recommended to clone the repository to get the latest version of the scripts. See the [Git Repository](#git-repository) section for instructions.  Alternatively, you can download the `setup_kibana.sh` script directly.
+3.  **Make the Script Executable:** Open your terminal, navigate to the directory where you saved the script, and make it executable:
 
     ```bash
     chmod +x setup_kibana.sh
@@ -105,7 +108,7 @@ The `setup_kibana.sh` script performs the following actions:
     * Creates a temporary Kibana container.
     * Copies the default `kibana.yml` file from the container to the host.
     * Stops and removes the temporary container.  The user is expected to review and customize this file.
-7.  **Starts Kibana Container:**
+    7.  **Starts Kibana Container:**
     * Creates a `podman-compose.yml` file to define the Kibana service.
     * Starts the Kibana container using `podman-compose up`.
 8.  **Waits for Kibana to Start:** Waits for the Kibana container to start.
@@ -192,3 +195,36 @@ The scripts are licensed under the GNU GENERAL PUBLIC LICENSE Version 3.
 * `setup_kibana.sh` explain
     * [https://gist.github.com/linuxmalaysia/7782c879be1e22469d39bb1557505623](https://gist.github.com/linuxmalaysia/7782c879be1e22469d39bb1557505623)
 
+## Git Repository
+
+The scripts for setting up Elasticsearch and Kibana are available in the following Git repository:
+
+* [https://github.com/HarisfazillahJamel/podman-elastic-stack.git](https://github.com/HarisfazillahJamel/podman-elastic-stack.git)
+
+You can clone this repository to your local machine using the following steps:
+
+1.  **Open a terminal:** Open your terminal or command prompt.
+2.  **Create a directory (optional):** It's recommended to create a dedicated directory for your projects. For example:
+
+    ```bash
+    mkdir ~/myprojects
+    cd ~/myprojects
+    ```
+3.  **Clone the repository:** Use the `git clone` command to copy the repository to your local machine:
+
+    ```bash
+    git clone [https://github.com/HarisfazillahJamel/podman-elastic-stack.git](https://github.com/HarisfazillahJamel/podman-elastic-stack.git)
+    ```
+
+    This will create a directory named `podman-elastic-stack` in your current directory and download the repository files into it.
+4.  **Navigate to the repository:** Change to the newly created directory:
+
+    ```bash
+    cd podman-elastic-stack
+    ```
+
+You can then find the `setup_elasticsearch.sh` and `setup_kibana.sh` scripts within this directory.
+
+Harisfazillah Jamel (aka) LinuxMalaysia
+
+20250402
